@@ -24,7 +24,7 @@
 - [x] Include accurate catalog source documentation and instructions for local build/run.
 
 ## 5. Separate public code repository
-- [ ] Create and push the completed code to a new public GitHub repository, separate from and without modifying `Syeda-Aamna/aurora-library-system` or the existing LibraTech reference deployment.
+- [x] Create and push the completed code to a new public GitHub repository, separate from and without modifying `Syeda-Aamna/aurora-library-system` or the existing LibraTech reference deployment.
 
 ## 6. Permanent deployment
 - [ ] Publish the completed app to a separate permanent Vercel project without changing the existing reference deployment; provide its URL only after the production deployment and database readiness are confirmed.
