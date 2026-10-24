@@ -15,9 +15,11 @@ A professional MERN library-management website with a public reader catalog and 
 
 ## Real catalog and inventory policy
 
-The starter catalog contains six real, ISBN-backed editions documented in [`CATALOG_SOURCES.md`](./CATALOG_SOURCES.md). On a truly empty MongoDB database, the one-time initializer may add those bibliographic records with `quantity=0` and `availableQuantity=0`. Staff must record physical holdings before any copy is available to issue. No fictional titles, members, loans, or sample holdings are seeded. Set `SEED_STARTER_CATALOG=false` to disable the one-time starter catalog initialization.
+The starter catalog has **25 real, ISBN-backed books**: the five retained original titles and 20 additions, with *Frankenstein* removed. Bibliographic sources and edition ISBN links are in [`CATALOG_SOURCES.md`](./CATALOG_SOURCES.md). On a truly empty MongoDB database, the initializer adds all 25 titles with `quantity=0` and `availableQuantity=0`. Staff must record actual physical holdings before any copy is available to issue. No fictional titles, members, loans, or sample holdings are seeded. Set `SEED_STARTER_CATALOG=false` to disable initialization.
 
-If the database or API is unavailable, the reader view may show verified bibliographic metadata, but it does not represent that metadata as physical stock. Staff write operations remain locked until the database and administrator configuration are ready.
+A database initialized with the previous v1 starter catalog receives missing starter titles using insert-only writes; staff-entered quantities are not overwritten. The obsolete *Frankenstein* entry is removed only when it has no counted copies and no loan history. Existing stock or history is preserved.
+
+If the database or API is unavailable, the reader view may show the verified bibliographic records, but it does not represent them as physical stock. Staff write operations remain locked until the database and administrator configuration are ready.
 
 ## Local development
 
@@ -34,7 +36,7 @@ The Vite website listens on `http://localhost:3000` and proxies `/api` to the lo
 - `MONGODB_URI` — private MongoDB connection URI.
 - `SESSION_SECRET` — random signing secret of at least 32 characters.
 - `ADMIN_EMAIL` and `ADMIN_PASSWORD` — administrator credentials.
-- `SEED_STARTER_CATALOG` — optional one-time starter metadata seed toggle.
+- `SEED_STARTER_CATALOG` — optional initializer toggle described above.
 - `PUBLIC_HTTPS_PREVIEW` — optional local proxy override; the hosted Preview normally identifies itself through the browser request header.
 
 Never commit `.env`, MongoDB credentials, session secrets, or administrator credentials. Only placeholders belong in `.env.example`.
@@ -54,4 +56,4 @@ npm run build
 
 ## Catalog source notes
 
-See [`CATALOG_SOURCES.md`](./CATALOG_SOURCES.md) for the ISBNs, Open Library metadata/cover endpoints, and bibliographic verification references.
+See [`CATALOG_SOURCES.md`](./CATALOG_SOURCES.md) for the ISBNs, Open Library metadata/cover endpoints, bibliographic verification references, and zero-stock seeding policy.

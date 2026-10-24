@@ -24,22 +24,13 @@ app.use((req, _res, next) => {
 
 app.use('/api', csrfGuard);
 
-const seedKey = 'verified-starter-catalog-v1';
+const seedKey = 'verified-starter-catalog-v2';
+const previousSeedKey = 'verified-starter-catalog-v1';
 let seedPromise;
 async function seedStarterCatalog() {
   if (process.env.SEED_STARTER_CATALOG === 'false' || !starterCatalog.length) return;
-  if (await LibrarySetting.exists({ key: seedKey })) return;
-  const [bookCount, memberCount, loanCount] = await Promise.all([
-    Book.estimatedDocumentCount(), Member.estimatedDocumentCount(), Loan.estimatedDocumentCount(),
-  ]);
-  if (bookCount || memberCount || loanCount) {
-    await LibrarySetting.updateOne(
-      { key: seedKey },
-      { $setOnInsert: { key: seedKey, value: 'skipped-existing-library-data' } },
-      { upsert: true },
-    );
-    return;
-  }
+  const existingSeed = await LibrarySetting.findOne({ key: seedKey }).lean();
+  if (existingSeed && existingSeed.value !== 'seeding') return;
   if (!seedPromise) {
     seedPromise = (async () => {
       const claim = await LibrarySetting.updateOne(
@@ -47,8 +38,20 @@ async function seedStarterCatalog() {
         { $setOnInsert: { key: seedKey, value: 'seeding' } },
         { upsert: true },
       );
-      if (!claim.upsertedCount) return;
+      if (!claim.upsertedCount) {
+        const currentSeed = await LibrarySetting.findOne({ key: seedKey }).lean();
+        if (currentSeed?.value !== 'seeding') return;
+      }
       try {
+        const [previousSeed, bookCount, memberCount, loanCount] = await Promise.all([
+          LibrarySetting.findOne({ key: previousSeedKey }).lean(),
+          Book.estimatedDocumentCount(), Member.estimatedDocumentCount(), Loan.estimatedDocumentCount(),
+        ]);
+        const isKnownStarterLibrary = previousSeed?.value === 'seeded-real-zero-stock-catalog';
+        if ((bookCount || memberCount || loanCount) && !isKnownStarterLibrary) {
+          await LibrarySetting.updateOne({ key: seedKey }, { $set: { value: 'skipped-existing-library-data' } });
+          return;
+        }
         await Promise.all(starterCatalog.map(async (book) => {
           try {
             await Book.updateOne(
@@ -60,7 +63,17 @@ async function seedStarterCatalog() {
             if (error.code !== 11000) throw error;
           }
         }));
-        await LibrarySetting.updateOne({ key: seedKey }, { $set: { value: 'seeded-real-zero-stock-catalog' } });
+        if (isKnownStarterLibrary) {
+          const oldFrankenstein = await Book.findOne({ isbn: '9780141439471' }).lean();
+          if (oldFrankenstein && oldFrankenstein.quantity === 0 && oldFrankenstein.availableQuantity === 0) {
+            const hasLoanHistory = await Loan.exists({ book: oldFrankenstein._id });
+            if (!hasLoanHistory) await Book.deleteOne({ _id: oldFrankenstein._id });
+          }
+        }
+        await LibrarySetting.updateOne(
+          { key: seedKey },
+          { $set: { value: isKnownStarterLibrary ? 'migrated-v1-to-verified-real-zero-stock-catalog-v2' : 'seeded-verified-real-zero-stock-catalog-v2' } },
+        );
       } catch (error) {
         await LibrarySetting.deleteOne({ key: seedKey });
         throw error;

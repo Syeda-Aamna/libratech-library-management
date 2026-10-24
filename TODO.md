@@ -9,7 +9,7 @@
 ## 2. Real catalog and book/member administration
 - [x] Allow an administrator/librarian to add, view, update, and delete books. Each book stores title, author, category, ISBN, quantity, available quantity, and publication year.
 - [x] Allow an administrator/librarian to add, view, update, and delete members. Each member stores name, email, phone, address, and membership date.
-- [x] Use real book titles, authors, editions, and ISBNs, not dummy book data. On a genuinely empty MongoDB database, seed only the six verified bibliographic records; initialize each with quantity 0 and available quantity 0 until staff confirm physical holdings. Do not seed fictional members or example loans.
+- [x] Use real book titles, authors, editions, and ISBNs, not dummy book data. The starter catalog contains 25 real books total: the original catalog with *Frankenstein* removed plus 20 verified titles. Initialize each with quantity 0 and available quantity 0 until staff confirm physical holdings. Do not seed fictional members or example loans. Preserve existing staff-entered inventory on catalog upgrades.
 
 ## 3. Issue/return operations and dashboard
 - [x] A librarian can issue a book only when an available physical copy and a registered member exist, then later mark the issue returned.
